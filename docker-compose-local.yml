@@ -13,6 +13,18 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - custom
+  db_test:
+    container_name: 'db_test'
+    image: postgres:14
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER_TEST}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_TEST}
+      POSTGRES_DB: ${POSTGRES_DB_TEST}
+    ports:
+      - '${POSTGRES_PORT_TEST}:5432'
+    networks:
+      - custom
 
 volumes:
   postgres_data:

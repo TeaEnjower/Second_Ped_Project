@@ -3,12 +3,17 @@ from envparse import Env
 env = Env()
 env.read_envfile()
 
-# Читаем отдельные переменные
 POSTGRES_USER = env.str("POSTGRES_USER")
 POSTGRES_PASSWORD = env.str("POSTGRES_PASSWORD")
 POSTGRES_DB = env.str("POSTGRES_DB")
-POSTGRES_PORT = env.int("POSTGRES_PORT")  # Используем int для порта
+POSTGRES_PORT = env.int("POSTGRES_PORT")  
 DB_HOST = env.str("DB_HOST")
 
-# Собираем строку подключения
+POSTGRES_USER_TEST = env.str("POSTGRES_USER")
+POSTGRES_PASSWORD_TEST = env.str("POSTGRES_PASSWORD")
+POSTGRES_DB_TEST = env.str("POSTGRES_DB")
+POSTGRES_PORT_TEST = env.int("POSTGRES_PORT")  
+DB_HOST_TEST = env.str("DB_HOST")
+
 REAL_DATABASE_URL = f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DB_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+REAL_DATABASE_URL_TEST = f"postgresql+asyncpg://{POSTGRES_USER_TEST}:{POSTGRES_PASSWORD_TEST}@{DB_HOST_TEST}:{POSTGRES_PORT_TEST}/{POSTGRES_DB_TEST}"
