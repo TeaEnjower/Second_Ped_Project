@@ -1,4 +1,5 @@
 from envparse import Env
+from datetime import timedelta
 
 env = Env()
 env.read_envfile()
@@ -15,5 +16,11 @@ POSTGRES_DB_TEST = env.str("POSTGRES_DB")
 POSTGRES_PORT_TEST = env.int("POSTGRES_PORT")
 DB_HOST_TEST = env.str("DB_HOST_TEST")
 
+SECRET_KEY = env.str("SECRET_KEY", default="your-secret-key-change-in-production")
+ALGORITHM = env.str("ALGORITHM", default="HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = env.int("ACCESS_TOKEN_EXPIRE_MINUTES", default=30)
+
 REAL_DATABASE_URL = f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DB_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
 REAL_DATABASE_URL_TEST = f"postgresql+asyncpg://{POSTGRES_USER_TEST}:{POSTGRES_PASSWORD_TEST}@{DB_HOST_TEST}:{POSTGRES_PORT_TEST}/{POSTGRES_DB_TEST}"
+
+ACCESS_TOKEN_EXPIRE = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
