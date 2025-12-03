@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
 LETTER_MATCH_PATTERN = re.compile(r"^[а-яА-Яa-zA-Z\-]+$")
 
+
 class TuneModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -17,6 +18,7 @@ class ShowUser(TuneModel):
     email: EmailStr
     is_active: bool
     created_at: datetime
+
 
 class UserCreate(BaseModel):
     name: str
@@ -30,7 +32,7 @@ class UserCreate(BaseModel):
         if not LETTER_MATCH_PATTERN.match(value):
             raise ValueError("Name should contain only letters")
         return value
-    
+
     @field_validator("surname")
     @classmethod
     def validate_surname(cls, value: str) -> str:
@@ -38,21 +40,26 @@ class UserCreate(BaseModel):
             raise ValueError("Surname should contain only letters")
         return value
 
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
 
 class Token(BaseModel):
     access_token: str
     token_type: str
 
+
 class TokenData(BaseModel):
     email: Optional[str] = None
+
 
 class CategoryCreate(BaseModel):
     name: str
     slug: str
     description: Optional[str] = None
+
 
 class ShowCategory(TuneModel):
     id: int
@@ -60,6 +67,7 @@ class ShowCategory(TuneModel):
     slug: str
     description: Optional[str]
     created_at: datetime
+
 
 class ArticleCreate(BaseModel):
     title: str
@@ -69,6 +77,7 @@ class ArticleCreate(BaseModel):
     image_url: Optional[str] = None
     is_published: bool = True
 
+
 class ArticleUpdate(BaseModel):
     title: Optional[str] = None
     content: Optional[str] = None
@@ -76,6 +85,7 @@ class ArticleUpdate(BaseModel):
     category_id: Optional[int] = None
     image_url: Optional[str] = None
     is_published: Optional[bool] = None
+
 
 class ShowArticle(TuneModel):
     id: int
@@ -91,12 +101,14 @@ class ShowArticle(TuneModel):
     category: Optional[ShowCategory] = None
     author: Optional[ShowUser] = None
 
+
 class ArticleListResponse(TuneModel):
     articles: list[ShowArticle]
     total: int
     page: int
     page_size: int
     total_pages: int
+
 
 class TokenResponse(Token):
     pass

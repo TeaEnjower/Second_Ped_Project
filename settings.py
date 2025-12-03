@@ -12,7 +12,7 @@ DB_HOST = env.str("DB_HOST")
 
 POSTGRES_USER_TEST = env.str("POSTGRES_USER")
 POSTGRES_PASSWORD_TEST = env.str("POSTGRES_PASSWORD")
-POSTGRES_DB_TEST = env.str("POSTGRES_DB")
+POSTGRES_DB_TEST = env.str("POSTGRES_DB_TEST")
 POSTGRES_PORT_TEST = env.int("POSTGRES_PORT")
 DB_HOST_TEST = env.str("DB_HOST_TEST")
 
@@ -20,7 +20,13 @@ SECRET_KEY = env.str("SECRET_KEY", default="your-secret-key-change-in-production
 ALGORITHM = env.str("ALGORITHM", default="HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = env.int("ACCESS_TOKEN_EXPIRE_MINUTES", default=30)
 
-REAL_DATABASE_URL = f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DB_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+REAL_DATABASE_URL = f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DB_HOST}:5432/{POSTGRES_DB}"
 REAL_DATABASE_URL_TEST = f"postgresql+asyncpg://{POSTGRES_USER_TEST}:{POSTGRES_PASSWORD_TEST}@{DB_HOST_TEST}:{POSTGRES_PORT_TEST}/{POSTGRES_DB_TEST}"
 
 ACCESS_TOKEN_EXPIRE = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+
+SMTP_HOST = env.str("SMTP_HOST", default="localhost")
+SMTP_PORT = env.int("SMTP_PORT", default=1025)
+SMTP_USER = env.str("SMTP_USER", default="")
+SMTP_PASSWORD = env.str("SMTP_PASSWORD", default="")
+EMAIL_FROM = env.str("EMAIL_FROM", default="noreply@marketplace-blog.com")
