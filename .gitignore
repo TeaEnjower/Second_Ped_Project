@@ -34,12 +34,21 @@ wheels/
 *.db
 *.sqlite3
 
-# Alembic migrations (except versions directory)
+# Alembic
+alembic.ini
+alembic.ini.local
+
+# Migrations (except versions directory)
+migrations/
+!migrations/versions/
 migrations/versions/*.py
 !migrations/versions/__init__.py
 
 # IDE
 .vscode/
+.idea/
+*.swp
+*.swo
 
 # OS
 .DS_Store
@@ -58,6 +67,8 @@ logs/
 .pytest_cache/
 .coverage
 htmlcov/
+.tox/
+.nox/
 
 # Temp files
 *.tmp
@@ -65,7 +76,16 @@ htmlcov/
 tempCodeRunnerFile.*
 
 # Docker
+docker-compose-local.yml
 docker-compose.override.yml
 
-# Project specific
-alembic.ini.local
+# Python cache
+.ruff_cache/
+
+# Project specific temporary files
+AsyncMock
+Generator
+dict
+str
+hashed.py
+tempCodeRunnerFile.py

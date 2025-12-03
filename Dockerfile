@@ -9,13 +9,19 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Копируем pyproject.toml
+COPY pyproject.toml .
 
+# Устанавливаем только зависимости из pyproject.toml, без установки проекта
+RUN pip install --no-cache-dir pip-tools && \
+    pip-compile --generate-hashes -o requirements.txt pyproject.toml && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Теперь копируем исходный код
 COPY . .
 
-RUN which celery || echo "Celery not found"
-RUN celery --version || echo "Cannot run celery"
+# Проверяем что зависимости установлены
+RUN python -c "import celery; print(f'✓ Celery {celery.__version__} installed')"
 
 EXPOSE 8000
 

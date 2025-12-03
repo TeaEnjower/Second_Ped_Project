@@ -8,7 +8,7 @@ from db.dals import UserDAL
 from db.session import get_db
 from hashed import Hashed
 from security import create_access_token
-from settings import ACCESS_TOKEN_EXPIRE
+from settings import ACCESS_TOKEN_EXPIRE_MINUTES
 
 login_router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
@@ -42,7 +42,7 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE)
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.email, "user_id": str(user.user_id)},
         expires_delta=access_token_expires,
@@ -85,7 +85,7 @@ async def login_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE)
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.email, "user_id": str(user.user_id)},
         expires_delta=access_token_expires,

@@ -1,121 +1,109 @@
-from typing import AsyncGenerator
+# tests/conftest.py
+import pytest
+from typing import Generator
+from unittest.mock import AsyncMock, Mock, patch, MagicMock
+from fastapi.testclient import TestClient
+from sqlalchemy.ext.asyncio import AsyncSession
+import uuid
+from datetime import datetime
 
-import pytest_asyncio
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import NullPool
-
-from db.models import Base
-from main import app  # Импортируем FastAPI приложение
+from main import app
 from db.session import get_db
-from hashed import Hashed
-
-# Для тестов используем отдельную БД
-TEST_DATABASE_URL = "postgresql+asyncpg://postgres:Daemonium_555@localhost:5432/test_db"
-
-# Создаем движок для тестовой БД
-engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
-AsyncSessionLocal = sessionmaker(
-    bind=engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-)
+from security import create_access_token
 
 
-# Фикстура для создания сессии
-@pytest_asyncio.fixture(scope="session")
-async def async_session() -> AsyncGenerator[AsyncSession, None]:
-    """Создает и возвращает асинхронную сессию."""
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-        async with AsyncSessionLocal(bind=conn) as session:
-            yield session
-            await session.rollback()
-    await engine.dispose()
+@pytest.fixture(scope="function")
+def mock_db_session() -> AsyncMock:
+    """Мок сессии базы данных"""
+    session = AsyncMock(spec=AsyncSession)
+    
+    # Настраиваем async context manager
+    session.__aenter__.return_value = session
+    session.__aexit__.return_value = None
+    
+    # Настраиваем begin() как async context manager
+    session.begin.return_value.__aenter__.return_value = session
+    session.begin.return_value.__aexit__.return_value = None
+    
+    # Настраиваем execute() для возврата мокового результата
+    mock_result = Mock()
+    mock_result.scalars.return_value.all.return_value = []
+    mock_result.scalar_one_or_none.return_value = None
+    session.execute.return_value = mock_result
+    
+    return session
 
 
-# Фикстура для клиента FastAPI
-@pytest_asyncio.fixture(scope="session")
-async def client():
-    """Создает тестового клиента FastAPI."""
-    from fastapi.testclient import TestClient
-
+@pytest.fixture(scope="function")
+def client(mock_db_session: AsyncMock) -> Generator:
+    """Фикстура для тестового клиента FastAPI"""
+    
     async def override_get_db():
-        async with AsyncSessionLocal() as session:
-            yield session
-
+        yield mock_db_session
+    
     app.dependency_overrides[get_db] = override_get_db
-    async with TestClient(app) as client:
-        yield client
+    
+    with TestClient(app) as test_client:
+        yield test_client
+    
+    app.dependency_overrides.clear()
 
 
-# Фикстура для тестового пользователя
-@pytest_asyncio.fixture(scope="session")
-async def test_user(async_session):
-    """Создает тестового пользователя."""
-    from db.dals import UserDAL
-
-    user_dal = UserDAL(async_session)
-    password = "password123"
-    hashed_password = Hashed.get_password_hash(password)
-    user = await user_dal.create_user(
-        name="Тест",
-        surname="Пользователь",
-        email="test@example.com",
-        hashed_password=hashed_password,
-    )
-    await async_session.commit()
+@pytest.fixture(scope="function")
+def test_user_data() -> dict:
     return {
-        "user_id": str(user.user_id),
-        "name": "Тест",
-        "surname": "Пользователь",
+        "name": "Иван",
+        "surname": "Иванов",
         "email": "test@example.com",
-        "password": password,
+        "password": "TestPassword123"
     }
 
 
-# Фикстура для авторизованного клиента
-@pytest_asyncio.fixture(scope="session")
-async def authenticated_client(client, test_user):
-    """Возвращает клиент, авторизованный под тестовым пользователем."""
-    response = client.post(
-        "/auth/login",
-        data={"username": test_user["email"], "password": test_user["password"]},
-    )
-    assert response.status_code == 200
-    token = response.json()["access_token"]
-    client.headers["Authorization"] = f"Bearer {token}"
-    return client
+@pytest.fixture(scope="function")
+def mock_user():
+    """Мок пользователя с правильными типами данных"""
+    user = Mock()
+    user.user_id = uuid.uuid4()
+    user.name = "Иван"
+    user.surname = "Иванов"
+    user.email = "test@example.com"
+    user.hashed_password = "hashed_password_123"
+    user.is_active = True
+    user.created_at = datetime.now()  # Должен быть datetime объект
+    return user
 
 
-# Фикстура для тестовой категории
-@pytest_asyncio.fixture(scope="session")
-async def test_category(async_session):
-    """Создает тестовую категорию."""
-    from db.dals import CategoryDAL
-
-    category_dal = CategoryDAL(async_session)
-    category = await category_dal.create_category(
-        name="Тестовая категория",
-        slug="test-category",
-        description="Описание тестовой категории",
-    )
-    await async_session.commit()
+@pytest.fixture(scope="function")
+def mock_category():
+    """Мок категории"""
+    category = Mock()
+    category.id = 1
+    category.name = "Технологии"
+    category.slug = "technology"
+    category.description = "Статьи о технологиях"
+    category.created_at = datetime.now()  # Должен быть datetime объект
     return category
 
 
-# Фикстура для тестовой статьи
-@pytest_asyncio.fixture(scope="session")
-async def test_article(authenticated_client, test_category):
-    """Создает тестовую статью через API."""
-    response = authenticated_client.post(
-        "/article/",
-        json={
-            "title": "Тестовая статья",
-            "content": "Текст тестовой статьи",
-            "category_id": test_category.id,
-            "is_published": True,
-        },
+@pytest.fixture(scope="function")
+def mock_article(mock_user, mock_category):
+    """Мок статьи"""
+    article = Mock()
+    article.id = 1
+    article.title = "Тестовая статья"
+    article.content = "Содержание"
+    article.excerpt = "Краткое описание"
+    article.category_id = mock_category.id
+    article.author_id = mock_user.user_id
+    article.image_url = "https://example.com/image.jpg"
+    article.is_published = True
+    article.created_at = datetime.now()
+    article.updated_at = datetime.now()
+    return article
+
+
+@pytest.fixture(scope="function")
+def auth_token(mock_user) -> str:
+    return create_access_token(
+        data={"sub": mock_user.email, "user_id": str(mock_user.user_id)}
     )
-    assert response.status_code == 200
-    return response.json()

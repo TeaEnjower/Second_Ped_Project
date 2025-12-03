@@ -1,0 +1,123 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "marketplace"
+version = "0.1.0"
+description = "Marketplace API"
+authors = [{name = "Your Name", email = "your.email@example.com"}]
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+dependencies = [
+    # ASGI сервер и веб-фреймворк
+    "fastapi==0.104.1",
+    "uvicorn[standard]==0.24.0",
+    "starlette==0.27.0",
+    "python-multipart==0.0.6",
+    "httptools==0.6.1",
+    "uvloop==0.19.0",
+    "websockets==12.0",
+    "watchfiles==0.21.0",
+    
+    # База данных
+    "asyncpg==0.29.0",
+    "SQLAlchemy==2.0.28",
+    "psycopg2-binary==2.9.9",
+    "alembic==1.12.1",
+    
+    # Валидация и настройки
+    "pydantic[email]==2.5.0",
+    "pydantic-settings==2.1.0",
+    "envparse==0.2.0",
+    "python-dotenv==1.0.0",
+    "email-validator==2.1.0",
+    
+    # Аутентификация
+    "python-jose[cryptography]==3.3.0",
+    "passlib[bcrypt]==1.7.4",
+    
+    # Celery
+    "celery==5.3.6",
+    "kombu==5.3.6",
+    "amqp==5.2.0",
+    "redis==5.0.1",
+    
+    # Email
+    "aiosmtplib==2.0.0",
+    
+    # HTTP клиент
+    "httpx==0.25.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Тестирование
+    "pytest==7.4.3",
+    "pytest-asyncio==0.21.1",
+    "pytest-cov==4.1.0",
+    
+    # Мониторинг
+    "flower==2.0.1",
+    
+    # Линтинг
+    "black==23.11.0",
+    "isort==5.12.0",
+    "flake8==6.1.0",
+    "mypy==1.7.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/marketplace"
+Repository = "https://github.com/yourusername/marketplace.git"
+
+[tool.setuptools]
+packages = ["api", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--tb=short",
+    "-v"
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
